@@ -1,0 +1,31 @@
+---
+- name: Install Nginx (for Debian-based systems)
+  apt:
+    name: nginx
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: Start Nginx service
+  service:
+    name: nginx
+    state: started
+    enabled: yes
+
+- name: Generate self-signed certificate and key
+  command: openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/self-signed.key -out /etc/nginx/ssl/self-signed.crt -subj "/CN=test.int"
+  args:
+    creates: /etc/nginx/ssl/self-signed.crt
+
+- name: Configure Nginx with HTTPS
+  template:
+    src: nginx/templates/nginx.conf.j2
+    dest: /etc/nginx/sites-available/test.int
+  notify: Reload Nginx
+
+- name: Create a symbolic link to enable the site
+  file:
+    src: /etc/nginx/sites-available/test.int
+    dest: /etc/nginx/sites-enabled/test.int
+    state: link
+  notify: Reload Nginx
+

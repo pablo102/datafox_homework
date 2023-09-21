@@ -1,0 +1,9 @@
+---
+# handlers file for tomcat
+    - name: Restart Tomcat
+      shell: |
+        /opt/apache-tomcat-10.1.13/bin/shutdown.sh
+        sleep 5
+        /opt/apache-tomcat-10.1.13/bin/startup.sh
+      async: 180
+      poll: 0

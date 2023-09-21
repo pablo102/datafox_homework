@@ -1,0 +1,32 @@
+---
+- name: Create a symbolic link to enable the site
+  file:
+    src: /etc/nginx/sites-available/test.int
+    dest: /etc/nginx/sites-enabled/test.int
+    state: link
+  notify: Reload Nginx
+
+- name: Install OpenJDK
+  apt:
+    name: openjdk-11-jre
+    state: present
+
+- name: Download and extract Apache Tomcat 10.1.13
+  get_url:
+    url: https://downloads.apache.org/tomcat/tomcat-10/v10.1.13/bin/apache-tomcat-10.1.13.tar.gz
+    dest: /tmp/apache-tomcat-10.1.13.tar.gz
+    validate_certs: no  # Use this if you encounter SSL certificate issues
+  when: ansible_os_family == 'Debian'
+
+- name: Extract Apache Tomcat archive
+  ansible.builtin.unarchive:
+    src: /tmp/apache-tomcat-10.1.13.tar.gz
+    dest: /opt
+  when: ansible_os_family == 'Debian'
+
+- name: Configure Tomcat to listen on port 6060 and 3001
+  template:
+    src: tomcat/templates/server.xml.j2
+    dest: /opt/apache-tomcat-10.1.13/conf/server.xml
+  notify: Restart Tomcat
+
